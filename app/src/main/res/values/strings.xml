@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Desasolve2</string>
+    
+    <!-- Navegación -->
+    <string name="nav_calendar">Calendario</string>
+    <string name="nav_request">Solicitar</string>
+    <string name="nav_personal">Personal</string>
+    <string name="nav_notifications">Avisos</string>
+    
+    <!-- Calendario -->
+    <string name="calendar_title">Agenda de Servicios</string>
+    <string name="calendar_filter">Filtros</string>
+    <string name="calendar_previous_week">Semana anterior</string>
+    <string name="calendar_next_week">Semana siguiente</string>
+    <string name="calendar_today">Hoy</string>
+    <string name="calendar_scheduled_services">Servicios Programados</string>
+    <string name="calendar_no_services">No hay servicios programados</string>
+    <string name="calendar_no_services_subtitle">para este día</string>
+    <string name="calendar_view_details">Ver detalles</string>
+    
+    <!-- Estados de servicios -->
+    <string name="service_status_completed">Completado</string>
+    <string name="service_status_in_progress">En Progreso</string>
+    <string name="service_status_rescheduled">Reprogramado</string>
+</resources>
