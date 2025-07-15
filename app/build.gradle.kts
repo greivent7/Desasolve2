@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.isra2.desasolve2"
-        minSdk = 25
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -28,6 +28,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            isDebuggable = true
         }
     }
     compileOptions {
@@ -66,18 +69,18 @@ dependencies {
     // Extended Icons
     implementation("androidx.compose.material:material-icons-extended:1.6.2")
     
-    // Camera X
-    implementation("androidx.camera:camera-camera2:1.3.1")
-    implementation("androidx.camera:camera-lifecycle:1.3.1")
-    implementation("androidx.camera:camera-view:1.3.1")
+    // Camera X (comentado temporalmente para evitar crashes)
+    // implementation("androidx.camera:camera-camera2:1.3.1")
+    // implementation("androidx.camera:camera-lifecycle:1.3.1")
+    // implementation("androidx.camera:camera-view:1.3.1")
     
-    // Location
-    implementation("com.google.android.gms:play-services-location:21.1.0")
+    // Location (comentado temporalmente para evitar crashes)
+    // implementation("com.google.android.gms:play-services-location:21.1.0")
     
-    // Date/Time picker
-    implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
-    implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
-    implementation("com.maxkeppeler.sheets-compose-dialogs:clock:1.2.0")
+    // Date/Time picker (comentado temporalmente para evitar crashes)
+    // implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.2.0")
+    // implementation("com.maxkeppeler.sheets-compose-dialogs:calendar:1.2.0")
+    // implementation("com.maxkeppeler.sheets-compose-dialogs:clock:1.2.0")
     
     // Image loading
     implementation("io.coil-kt:coil-compose:2.5.0")

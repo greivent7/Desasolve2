@@ -1,15 +1,22 @@
 package com.isra2.desasolve2.ui.screens.servicedetails
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.isra2.desasolve2.navigation.Screen
@@ -26,147 +33,233 @@ fun ServiceDetailsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Detalles del Servicio") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Regresar",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+            ModernTopBar(
+                title = "Detalles del Servicio",
+                subtitle = "Gestiona el estado",
+                onBackClick = { navController.navigateUp() }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(Screen.BeforeAfterPhotos.createRoute(serviceId))
+                },
+                containerColor = InteractivePrimary,
+                contentColor = PureWhite,
+                modifier = Modifier.shadow(12.dp, RoundedCornerShape(16.dp))
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = "Tomar fotos")
+                    Text(
+                        text = "Fotos",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(BackgroundPrimary)
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Status Section
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Información del servicio
+            ServiceInfoCard(serviceId = serviceId)
+            
+            // Estado del servicio
+            ServiceStatusCard(
+                currentStatus = currentStatus,
+                onStatusChange = { currentStatus = it }
+            )
+            
+            // Información del cliente
+            ClientInfoCard()
+            
+            // Acciones rápidas
+            QuickActionsCard(
+                serviceId = serviceId,
+                navController = navController
+            )
+            
+            Spacer(modifier = Modifier.height(100.dp))
+        }
+    }
+}
+
+@Composable
+fun ModernTopBar(
+    title: String,
+    subtitle: String,
+    onBackClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = SurfacePrimary,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onBackClick,
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        InteractivePrimary.copy(alpha = 0.1f),
+                        CircleShape
+                    )
+            ) {
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Regresar",
+                    tint = InteractivePrimary,
+                    modifier = Modifier.size(24.dp)
                 )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Estado del Servicio",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        StatusButton(
-                            text = "Completado",
-                            icon = Icons.Default.CheckCircle,
-                            selected = currentStatus == ServiceStatus.COMPLETED,
-                            color = StatusCompleted
-                        ) {
-                            currentStatus = ServiceStatus.COMPLETED
-                        }
-                        StatusButton(
-                            text = "En Proceso",
-                            icon = Icons.Default.Pending,
-                            selected = currentStatus == ServiceStatus.IN_PROGRESS,
-                            color = StatusInProgress
-                        ) {
-                            currentStatus = ServiceStatus.IN_PROGRESS
-                        }
-                        StatusButton(
-                            text = "Reprogramar",
-                            icon = Icons.Default.Schedule,
-                            selected = currentStatus == ServiceStatus.PENDING,
-                            color = StatusPending
-                        ) {
-                            currentStatus = ServiceStatus.PENDING
-                        }
-                    }
-                }
             }
-
-            // Service Information
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    InfoRow(
-                        icon = Icons.Default.Business,
-                        label = "Negocio",
-                        value = "Restaurante El Sabor"
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    InfoRow(
-                        icon = Icons.Default.LocationOn,
-                        label = "Dirección",
-                        value = "Av. Principal 123"
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = TextSecondary
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    InfoRow(
-                        icon = Icons.Default.Phone,
-                        label = "Contacto",
-                        value = "555-0123"
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    InfoRow(
-                        icon = Icons.Default.Schedule,
-                        label = "Hora",
-                        value = "09:00 AM"
-                    )
-                }
+                )
             }
+        }
+    }
+}
 
-            // Action Buttons
+@Composable
+fun ServiceInfoCard(serviceId: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        InteractivePrimary.copy(alpha = 0.1f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.CleaningServices,
+                    contentDescription = null,
+                    tint = InteractivePrimary,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column {
+                Text(
+                    text = "Servicio #$serviceId",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                )
+                Text(
+                    text = "Desazolve y limpieza",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = TextSecondary
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ServiceStatusCard(
+    currentStatus: ServiceStatus,
+    onStatusChange: (ServiceStatus) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "Estado del Servicio",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.BeforeAfterPhotos.createRoute(serviceId))
-                    },
-                    modifier = Modifier.weight(1f)
+                ModernStatusButton(
+                    text = "Completado",
+                    icon = Icons.Outlined.CheckCircle,
+                    selected = currentStatus == ServiceStatus.COMPLETED,
+                    color = StatusCompleted
                 ) {
-                    Icon(
-                        Icons.Default.PhotoCamera,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Fotos")
+                    onStatusChange(ServiceStatus.COMPLETED)
                 }
-
-                Button(
-                    onClick = { /* Handle location */ },
-                    modifier = Modifier.weight(1f)
+                
+                ModernStatusButton(
+                    text = "En Proceso",
+                    icon = Icons.Outlined.Pending,
+                    selected = currentStatus == ServiceStatus.IN_PROGRESS,
+                    color = StatusInProgress
                 ) {
-                    Icon(
-                        Icons.Default.Map,
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Ubicación")
+                    onStatusChange(ServiceStatus.IN_PROGRESS)
+                }
+                
+                ModernStatusButton(
+                    text = "Pendiente",
+                    icon = Icons.Outlined.Schedule,
+                    selected = currentStatus == ServiceStatus.PENDING,
+                    color = StatusPending
+                ) {
+                    onStatusChange(ServiceStatus.PENDING)
                 }
             }
         }
@@ -174,7 +267,7 @@ fun ServiceDetailsScreen(
 }
 
 @Composable
-fun StatusButton(
+fun ModernStatusButton(
     text: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     selected: Boolean,
@@ -182,58 +275,216 @@ fun StatusButton(
     onClick: () -> Unit
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        FilledTonalIconButton(
+        IconButton(
             onClick = onClick,
-            modifier = Modifier.size(56.dp),
-            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = if (selected) color else MaterialTheme.colorScheme.surfaceVariant,
-                contentColor = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            modifier = Modifier
+                .size(64.dp)
+                .background(
+                    if (selected) color else color.copy(alpha = 0.1f),
+                    CircleShape
+                )
         ) {
             Icon(
                 icon,
                 contentDescription = text,
+                tint = if (selected) PureWhite else color,
                 modifier = Modifier.size(32.dp)
             )
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        
         Text(
             text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) color else MaterialTheme.colorScheme.onSurface
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                color = if (selected) color else TextSecondary
+            ),
+            textAlign = TextAlign.Center
         )
     }
 }
 
 @Composable
-fun InfoRow(
+fun ClientInfoCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "Información del Cliente",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            ModernInfoRow(
+                icon = Icons.Outlined.Business,
+                label = "Negocio",
+                value = "Restaurante El Sabor"
+            )
+            
+            ModernInfoRow(
+                icon = Icons.Outlined.LocationOn,
+                label = "Dirección",
+                value = "Av. Principal 123, Col. Centro"
+            )
+            
+            ModernInfoRow(
+                icon = Icons.Outlined.Phone,
+                label = "Contacto",
+                value = "555-0123"
+            )
+            
+            ModernInfoRow(
+                icon = Icons.Outlined.Schedule,
+                label = "Hora Programada",
+                value = "09:00 AM"
+            )
+        }
+    }
+}
+
+@Composable
+fun ModernInfoRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     value: String
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(
+                    InteractivePrimary.copy(alpha = 0.1f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = InteractivePrimary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        
         Spacer(modifier = Modifier.width(16.dp))
-        Column {
+        
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
                 text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TextSecondary
+                )
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickActionsCard(
+    serviceId: String,
+    navController: NavController
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "Acciones Rápidas",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                ModernActionButton(
+                    text = "Fotos",
+                    icon = Icons.Outlined.PhotoCamera,
+                    onClick = {
+                        navController.navigate(Screen.BeforeAfterPhotos.createRoute(serviceId))
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                
+                ModernActionButton(
+                    text = "Ubicación",
+                    icon = Icons.Outlined.Map,
+                    onClick = { /* Handle location */ },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ModernActionButton(
+    text: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = InteractivePrimary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.SemiBold
                 )
             )
         }

@@ -1,6 +1,7 @@
 package com.isra2.desasolve2.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -28,8 +29,13 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import com.isra2.desasolve2.ui.screens.schedule.ScheduleScreen
 import com.isra2.desasolve2.ui.screens.servicerequest.ServiceRequestScreen
+import com.isra2.desasolve2.ui.screens.servicerequest.CreateQuoteScreen
 import com.isra2.desasolve2.ui.screens.worker.WorkerDashboardScreen
 import com.isra2.desasolve2.ui.screens.notifications.NotificationsScreen
 import com.isra2.desasolve2.ui.screens.servicedetails.ServiceDetailsScreen
@@ -53,6 +59,9 @@ fun AppNavigation() {
             }
             composable(Screen.ServiceRequest.route) {
                 ServiceRequestScreen(navController)
+            }
+            composable(Screen.CreateQuote.route) {
+                CreateQuoteScreen(navController)
             }
             composable(Screen.WorkerDashboard.route) {
                 WorkerDashboardScreen(navController)
@@ -109,8 +118,9 @@ fun ModernBottomNavigationBar(navController: NavHostController) {
     )
 
     NavigationBar(
-        containerColor = NavigationBackground,
-        tonalElevation = 8.dp
+        containerColor = SurfacePrimary,
+        tonalElevation = 12.dp,
+        modifier = Modifier.shadow(8.dp, RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp))
     ) {
         items.forEach { item ->
             val isSelected = currentRoute == item.route
@@ -120,21 +130,22 @@ fun ModernBottomNavigationBar(navController: NavHostController) {
                         if (isSelected) item.selectedIcon else item.icon, 
                         contentDescription = item.label,
                         tint = if (isSelected) 
-                            NavigationSelected 
+                            InteractivePrimary 
                         else 
-                            NavigationUnselected
+                            TextTertiary,
+                        modifier = Modifier.size(24.dp)
                     ) 
                 },
                 label = { 
                     Text(
                         item.label,
                         color = if (isSelected) 
-                            NavigationSelected 
+                            InteractivePrimary 
                         else 
-                            NavigationUnselected,
+                            TextTertiary,
                         style = MaterialTheme.typography.labelMedium.copy(
-                            fontWeight = if (isSelected) androidx.compose.ui.text.font.FontWeight.SemiBold 
-                            else androidx.compose.ui.text.font.FontWeight.Medium
+                            fontWeight = if (isSelected) FontWeight.SemiBold 
+                            else FontWeight.Medium
                         )
                     ) 
                 },
@@ -148,12 +159,13 @@ fun ModernBottomNavigationBar(navController: NavHostController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = NavigationSelected,
-                    selectedTextColor = NavigationSelected,
-                    unselectedIconColor = NavigationUnselected,
-                    unselectedTextColor = NavigationUnselected,
-                    indicatorColor = Color.Transparent
-                )
+                    selectedIconColor = InteractivePrimary,
+                    selectedTextColor = InteractivePrimary,
+                    unselectedIconColor = TextTertiary,
+                    unselectedTextColor = TextTertiary,
+                    indicatorColor = InteractivePrimary.copy(alpha = 0.1f)
+                ),
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
             )
         }
     }

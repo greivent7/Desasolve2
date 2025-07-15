@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.isra2.desasolve2.navigation.Screen
 import com.isra2.desasolve2.models.ServiceType
 import com.isra2.desasolve2.models.UrgencyLevel
 import com.isra2.desasolve2.models.QuoteStatus
@@ -60,6 +61,23 @@ fun ServiceRequestScreen(
     Scaffold(
         topBar = {
             ServiceQuotesHeader()
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { 
+                    // Navegar a la pantalla de crear cotización
+                    navController.navigate(Screen.CreateQuote.route)
+                },
+                containerColor = DeepSkyBlue,
+                contentColor = PureWhite,
+                modifier = Modifier.shadow(8.dp, RoundedCornerShape(16.dp))
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    contentDescription = "Crear cotización",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
     ) { paddingValues ->
         Column(
@@ -133,43 +151,46 @@ fun ServiceRequestScreen(
 fun ServiceQuotesHeader() {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = BackgroundPrimary,
-        shadowElevation = 4.dp
+        color = SurfacePrimary,
+        shadowElevation = 8.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            DeepSkyBlue,
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Outlined.RequestQuote,
-                        contentDescription = null,
-                        tint = PureWhite,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                
+            Column {
                 Text(
-                    text = "Solicitudes",
-                    style = MaterialTheme.typography.headlineMedium.copy(
+                    text = "Cotizaciones",
+                    style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
+                )
+                Text(
+                    text = "Gestiona tus solicitudes",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = TextSecondary
+                    )
+                )
+            }
+            
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(
+                        InteractivePrimary.copy(alpha = 0.1f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.RequestQuote,
+                    contentDescription = null,
+                    tint = InteractivePrimary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

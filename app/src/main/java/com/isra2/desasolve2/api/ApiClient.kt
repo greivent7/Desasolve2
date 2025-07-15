@@ -7,7 +7,14 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    private const val BASE_URL = "http://tu-servidor-django.com/api/" // TODO: Cambiar por tu URL real
+    // URLs de la API
+    // DESARROLLO (localhost)
+    private const val BASE_URL = "http://localhost:8000/api/"
+    
+    // PRODUCCIÓN (DigitalOcean) - Cambia por tu dominio real
+    // private const val BASE_URL = "https://tu-dominio.com/api/"
+    // private const val BASE_URL = "https://desasolve-api.com/api/"
+    // private const val BASE_URL = "https://api.desasolve.com/api/"
     
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(HttpLoggingInterceptor().apply {

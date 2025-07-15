@@ -44,7 +44,7 @@ fun NotificationsScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            NotificationsHeader(
+            ModernNotificationsHeader(
                 selectedFilter = selectedFilter,
                 onFilterChanged = { selectedFilter = it }
             )
@@ -52,11 +52,23 @@ fun NotificationsScreen(navController: NavController) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { /* TODO: Marcar todas como leídas */ },
-                containerColor = DeepSkyBlue,
+                containerColor = InteractivePrimary,
                 contentColor = PureWhite,
-                modifier = Modifier.shadow(8.dp, RoundedCornerShape(16.dp))
+                modifier = Modifier.shadow(12.dp, RoundedCornerShape(16.dp))
             ) {
-                Icon(Icons.Default.DoneAll, contentDescription = "Marcar como leídas")
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Icon(Icons.Default.DoneAll, contentDescription = "Marcar como leídas")
+                    Text(
+                        text = "Leídas",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -68,11 +80,11 @@ fun NotificationsScreen(navController: NavController) {
                     .fillMaxSize()
                     .background(BackgroundPrimary)
                     .padding(paddingValues)
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     
                     // Resumen de notificaciones
                     NotificationsSummary(notifications = notifications)
@@ -86,7 +98,7 @@ fun NotificationsScreen(navController: NavController) {
                 }
                 
                 item {
-                    Spacer(modifier = Modifier.height(80.dp))
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
             }
         }
@@ -94,76 +106,67 @@ fun NotificationsScreen(navController: NavController) {
 }
 
 @Composable
-fun NotificationsHeader(
+fun ModernNotificationsHeader(
     selectedFilter: NotificationFilter,
     onFilterChanged: (NotificationFilter) -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = BackgroundPrimary,
-        shadowElevation = 4.dp
+        color = SurfacePrimary,
+        shadowElevation = 8.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(horizontal = 20.dp, vertical = 16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(
-                                DeepSkyBlue,
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Outlined.Notifications,
-                            contentDescription = null,
-                            tint = PureWhite,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    
+                Column {
                     Text(
                         text = "Notificaciones",
-                        style = MaterialTheme.typography.headlineMedium.copy(
+                        style = MaterialTheme.typography.headlineSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                     )
+                    Text(
+                        text = "Mantente informado",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextSecondary
+                        )
+                    )
                 }
                 
-                IconButton(
-                    onClick = { /* TODO: Configuración de notificaciones */ },
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(
-                            SurfaceSecondary,
-                            CircleShape
-                        )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        Icons.Outlined.Settings,
-                        contentDescription = "Configuración",
-                        tint = TextPrimary
-                    )
+                    IconButton(
+                        onClick = { /* TODO: Configuración de notificaciones */ },
+                        modifier = Modifier
+                            .size(48.dp)
+                            .background(
+                                InteractivePrimary.copy(alpha = 0.1f),
+                                CircleShape
+                            )
+                    ) {
+                        Icon(
+                            Icons.Outlined.Settings,
+                            contentDescription = "Configuración",
+                            tint = InteractivePrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
-            // Filtros
-            NotificationFilters(
+            // Filtros mejorados
+            ModernNotificationFilters(
                 selectedFilter = selectedFilter,
                 onFilterChanged = onFilterChanged
             )
@@ -172,15 +175,15 @@ fun NotificationsHeader(
 }
 
 @Composable
-fun NotificationFilters(
+fun ModernNotificationFilters(
     selectedFilter: NotificationFilter,
     onFilterChanged: (NotificationFilter) -> Unit
 ) {
     LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         items(NotificationFilter.values()) { filter ->
-            FilterChip(
+            ModernFilterChip(
                 filter = filter,
                 isSelected = selectedFilter == filter,
                 onClick = { onFilterChanged(filter) }
@@ -190,7 +193,7 @@ fun NotificationFilters(
 }
 
 @Composable
-fun FilterChip(
+fun ModernFilterChip(
     filter: NotificationFilter,
     isSelected: Boolean,
     onClick: () -> Unit
@@ -202,13 +205,18 @@ fun FilterChip(
                 elevation = if (isSelected) 4.dp else 2.dp,
                 shape = RoundedCornerShape(20.dp)
             ),
-        color = if (isSelected) DeepSkyBlue else SurfaceSecondary,
+        color = if (isSelected) InteractivePrimary else SurfacePrimary,
         shape = RoundedCornerShape(20.dp)
     ) {
         Text(
-            text = filter.displayName,
+            text = when (filter) {
+                NotificationFilter.ALL -> "Todas"
+                NotificationFilter.UNREAD -> "No leídas"
+                NotificationFilter.IMPORTANT -> "Importantes"
+                NotificationFilter.SERVICES -> "Servicios"
+            },
             style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.Medium,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
                 color = if (isSelected) PureWhite else TextPrimary
             ),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
@@ -223,74 +231,82 @@ fun NotificationsSummary(notifications: List<Notification>) {
     
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = SurfaceSecondary
-        ),
-        shape = RoundedCornerShape(16.dp)
+        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(24.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            SummaryItem(
+            NotificationSummaryItem(
                 icon = Icons.Outlined.Notifications,
-                value = notifications.size.toString(),
+                count = notifications.size,
                 label = "Total",
-                color = TextPrimary
+                color = InteractivePrimary
             )
-            
-            SummaryItem(
+            NotificationSummaryItem(
                 icon = Icons.Outlined.MarkEmailUnread,
-                value = unreadCount.toString(),
+                count = unreadCount,
                 label = "No leídas",
-                color = if (unreadCount > 0) StatusPending else TextSecondary
+                color = StatusPending
             )
-            
-            SummaryItem(
+            NotificationSummaryItem(
                 icon = Icons.Outlined.PriorityHigh,
-                value = importantCount.toString(),
+                count = importantCount,
                 label = "Importantes",
-                color = if (importantCount > 0) StatusInProgress else TextSecondary
+                color = StatusInProgress
             )
         }
     }
 }
 
 @Composable
-fun SummaryItem(
+fun NotificationSummaryItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    value: String,
+    count: Int,
     label: String,
     color: Color
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Icon(
-            icon,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(24.dp)
-        )
-        
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(
+                    color.copy(alpha = 0.1f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(24.dp)
             )
-        )
-        
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = TextSecondary
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = count.toString(),
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
             )
-        )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = TextSecondary
+                )
+            )
+        }
     }
 }
 
@@ -302,18 +318,17 @@ fun ModernNotificationCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .shadow(4.dp, RoundedCornerShape(12.dp)),
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead) SurfaceTertiary else SurfaceSecondary
+            containerColor = if (notification.isRead) SurfacePrimary else SurfaceTertiary
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(20.dp),
             verticalAlignment = Alignment.Top
         ) {
             // Icono de notificación
@@ -321,69 +336,40 @@ fun ModernNotificationCard(
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        getNotificationTypeColor(notification.type).copy(alpha = 0.2f),
+                        getNotificationIconColor(notification.type).copy(alpha = 0.1f),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = getNotificationIcon(notification.type),
+                    getNotificationIcon(notification.type),
                     contentDescription = null,
-                    tint = getNotificationTypeColor(notification.type),
+                    tint = getNotificationIconColor(notification.type),
                     modifier = Modifier.size(24.dp)
                 )
             }
+            
+            Spacer(modifier = Modifier.width(16.dp))
             
             // Contenido de la notificación
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = notification.title,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
+                Text(
+                    text = notification.title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.SemiBold,
+                        color = TextPrimary
                     )
-                    
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (notification.isImportant) {
-                            Icon(
-                                Icons.Outlined.PriorityHigh,
-                                contentDescription = "Importante",
-                                tint = StatusInProgress,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        
-                        if (!notification.isRead) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .background(
-                                        StatusPending,
-                                        CircleShape
-                                    )
-                            )
-                        }
-                    }
-                }
+                )
                 
                 Text(
                     text = notification.message,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = TextSecondary
                     ),
-                    maxLines = 3
+                    maxLines = 2
                 )
                 
                 Row(
@@ -392,25 +378,18 @@ fun ModernNotificationCard(
                 ) {
                     Text(
                         text = formatNotificationTime(notification.timestamp),
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        style = MaterialTheme.typography.bodySmall.copy(
                             color = TextTertiary
                         )
                     )
                     
-                    if (notification.hasAction) {
-                        TextButton(
-                            onClick = { /* TODO: Acción de notificación */ },
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = DeepSkyBlue
-                            )
-                        ) {
-                            Text(
-                                text = notification.actionText ?: "Ver más",
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    fontWeight = FontWeight.Medium
-                                )
-                            )
-                        }
+                    if (notification.isImportant) {
+                        Icon(
+                            Icons.Outlined.PriorityHigh,
+                            contentDescription = "Importante",
+                            tint = StatusInProgress,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
@@ -420,78 +399,75 @@ fun ModernNotificationCard(
 
 @Composable
 fun EmptyNotificationsState() {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
-        contentAlignment = Alignment.Center
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .background(
+                    InteractivePrimary.copy(alpha = 0.1f),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        SurfaceSecondary,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Outlined.NotificationsOff,
-                    contentDescription = null,
-                    tint = TextSecondary,
-                    modifier = Modifier.size(64.dp)
-                )
-            }
-            
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "No hay notificaciones",
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    ),
-                    textAlign = TextAlign.Center
-                )
-                
-                Text(
-                    text = "Cuando tengas notificaciones nuevas, aparecerán aquí",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = TextSecondary
-                    ),
-                    textAlign = TextAlign.Center
-                )
-            }
+            Icon(
+                Icons.Outlined.NotificationsOff,
+                contentDescription = null,
+                tint = InteractivePrimary,
+                modifier = Modifier.size(48.dp)
+            )
         }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text(
+            text = "No hay notificaciones",
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            ),
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = "Cuando recibas notificaciones, aparecerán aquí",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = TextSecondary
+            ),
+            textAlign = TextAlign.Center
+        )
     }
 }
 
-// Funciones auxiliares
-private fun getNotificationTypeColor(type: NotificationType): Color {
+// Funciones helper
+fun getNotificationIcon(type: NotificationType): androidx.compose.ui.graphics.vector.ImageVector {
+    return when (type) {
+        NotificationType.SERVICE_COMPLETED -> Icons.Outlined.CheckCircle
+        NotificationType.SERVICE_SCHEDULED -> Icons.Outlined.Schedule
+        NotificationType.PAYMENT_RECEIVED -> Icons.Outlined.Payment
+        NotificationType.SYSTEM_UPDATE -> Icons.Outlined.SystemUpdate
+        NotificationType.URGENT_MESSAGE -> Icons.Outlined.PriorityHigh
+    }
+}
+
+fun getNotificationIconColor(type: NotificationType): Color {
     return when (type) {
         NotificationType.SERVICE_COMPLETED -> StatusCompleted
         NotificationType.SERVICE_SCHEDULED -> StatusScheduled
-        NotificationType.SERVICE_REMINDER -> StatusInProgress
-        NotificationType.SERVICE_UPDATED -> StatusPending
-        NotificationType.SYSTEM -> TextSecondary
+        NotificationType.PAYMENT_RECEIVED -> StatusCompleted
+        NotificationType.SYSTEM_UPDATE -> InteractivePrimary
+        NotificationType.URGENT_MESSAGE -> StatusPending
     }
 }
 
-private fun getNotificationIcon(type: NotificationType) = when (type) {
-    NotificationType.SERVICE_COMPLETED -> Icons.Outlined.CheckCircle
-    NotificationType.SERVICE_SCHEDULED -> Icons.Outlined.Schedule
-    NotificationType.SERVICE_REMINDER -> Icons.Outlined.Notifications
-    NotificationType.SERVICE_UPDATED -> Icons.Outlined.Update
-    NotificationType.SYSTEM -> Icons.Outlined.Info
-}
-
-private fun formatNotificationTime(timestamp: LocalDateTime): String {
+fun formatNotificationTime(timestamp: LocalDateTime): String {
     val now = LocalDateTime.now()
     val diff = java.time.Duration.between(timestamp, now)
     
@@ -499,87 +475,68 @@ private fun formatNotificationTime(timestamp: LocalDateTime): String {
         diff.toMinutes() < 1 -> "Ahora"
         diff.toMinutes() < 60 -> "Hace ${diff.toMinutes()} min"
         diff.toHours() < 24 -> "Hace ${diff.toHours()} h"
-        else -> timestamp.format(DateTimeFormatter.ofPattern("dd/MM HH:mm"))
+        else -> timestamp.format(DateTimeFormatter.ofPattern("dd/MM"))
     }
 }
 
-// Modelos de datos
-enum class NotificationFilter(val displayName: String) {
-    ALL("Todas"),
-    UNREAD("No leídas"),
-    IMPORTANT("Importantes"),
-    SERVICES("Servicios")
+// Data classes y enums
+enum class NotificationFilter {
+    ALL, UNREAD, IMPORTANT, SERVICES
 }
 
 enum class NotificationType {
-    SERVICE_COMPLETED,
-    SERVICE_SCHEDULED,
-    SERVICE_REMINDER,
-    SERVICE_UPDATED,
-    SYSTEM
+    SERVICE_COMPLETED, SERVICE_SCHEDULED, PAYMENT_RECEIVED, SYSTEM_UPDATE, URGENT_MESSAGE
 }
 
 data class Notification(
     val id: String,
     val title: String,
     val message: String,
-    val timestamp: LocalDateTime,
     val type: NotificationType,
+    val timestamp: LocalDateTime,
     val isRead: Boolean = false,
-    val isImportant: Boolean = false,
-    val hasAction: Boolean = false,
-    val actionText: String? = null
+    val isImportant: Boolean = false
 )
 
-private fun getDummyNotifications(): List<Notification> {
-    val now = LocalDateTime.now()
+fun getDummyNotifications(): List<Notification> {
     return listOf(
         Notification(
             id = "1",
             title = "Servicio Completado",
-            message = "La limpieza en Restaurante El Buen Sabor ha sido completada exitosamente. El cliente ha calificado el servicio con 5 estrellas.",
-            timestamp = now.minusMinutes(30),
+            message = "El servicio de limpieza en Av. Principal 123 ha sido completado exitosamente.",
             type = NotificationType.SERVICE_COMPLETED,
-            isRead = false,
-            isImportant = true,
-            hasAction = true,
-            actionText = "Ver detalles"
+            timestamp = LocalDateTime.now().minusMinutes(30),
+            isImportant = true
         ),
         Notification(
             id = "2",
             title = "Nuevo Servicio Programado",
-            message = "Se ha programado una limpieza para Cafetería Central mañana a las 14:00. Duración estimada: 2 horas.",
-            timestamp = now.minusHours(2),
+            message = "Se ha programado un nuevo servicio para mañana a las 9:00 AM.",
             type = NotificationType.SERVICE_SCHEDULED,
-            isRead = false,
-            hasAction = true,
-            actionText = "Ver agenda"
+            timestamp = LocalDateTime.now().minusHours(2)
         ),
         Notification(
             id = "3",
-            title = "Recordatorio de Servicio",
-            message = "Tienes un servicio programado en Hotel Plaza Mayor en 1 hora. No olvides llevar el equipo de desazolve.",
-            timestamp = now.minusHours(4),
-            type = NotificationType.SERVICE_REMINDER,
-            isRead = true,
-            isImportant = true
+            title = "Pago Recibido",
+            message = "Se ha recibido el pago por el servicio #12345. Monto: $150.00",
+            type = NotificationType.PAYMENT_RECEIVED,
+            timestamp = LocalDateTime.now().minusHours(4),
+            isRead = true
         ),
         Notification(
             id = "4",
-            title = "Servicio Reprogramado",
-            message = "El servicio en Restaurante Mariscos ha sido reprogramado para el viernes a las 16:00 debido a mantenimiento del edificio.",
-            timestamp = now.minusHours(6),
-            type = NotificationType.SERVICE_UPDATED,
-            isRead = true,
-            hasAction = true,
-            actionText = "Confirmar"
+            title = "Mensaje Urgente",
+            message = "El cliente ha solicitado cambios en el servicio programado para hoy.",
+            type = NotificationType.URGENT_MESSAGE,
+            timestamp = LocalDateTime.now().minusHours(6),
+            isImportant = true
         ),
         Notification(
             id = "5",
-            title = "Mantenimiento del Sistema",
-            message = "El sistema estará en mantenimiento esta noche de 2:00 a 4:00 AM. Los servicios programados no se verán afectados.",
-            timestamp = now.minusHours(8),
-            type = NotificationType.SYSTEM,
+            title = "Actualización del Sistema",
+            message = "Se han aplicado mejoras en la aplicación. Reinicia para ver los cambios.",
+            type = NotificationType.SYSTEM_UPDATE,
+            timestamp = LocalDateTime.now().minusDays(1),
             isRead = true
         )
     )

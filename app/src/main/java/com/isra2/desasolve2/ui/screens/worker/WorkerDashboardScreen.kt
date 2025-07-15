@@ -1,13 +1,9 @@
 package com.isra2.desasolve2.ui.screens.worker
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,254 +14,268 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.isra2.desasolve2.navigation.Screen
-import com.isra2.desasolve2.models.ServiceType
-import com.isra2.desasolve2.models.Worker
-import com.isra2.desasolve2.models.Assignment
 import com.isra2.desasolve2.ui.theme.*
-import java.time.LocalDate
-import java.time.LocalTime
-import androidx.compose.ui.text.input.TextFieldValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkerDashboardScreen(navController: NavController) {
-    // Lista inicial de trabajadores
-    val initialWorkers = listOf(
+    var hasError by remember { mutableStateOf(false) }
+    var workers by remember { mutableStateOf(listOf(
         "Jose Erasmo Sanchez",
-        "Abner Laureano",
+        "Abner Laureano", 
         "Jorge Torres",
         "César Lara Medina"
-    )
-    var workers by remember { mutableStateOf(initialWorkers) }
+    )) }
     var attendance by remember { mutableStateOf(workers.associateWith { false }) }
     var showAddDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf<Pair<String, Boolean>?>(null) }
-    var newWorkerName by remember { mutableStateOf(TextFieldValue("")) }
-    var showSaveConfirmation by remember { mutableStateOf(false) }
-    var hasChanges by remember { mutableStateOf(false) }
-
-    // Actualiza asistencia si cambia la lista de trabajadores
-    LaunchedEffect(workers) {
-        attendance = workers.associateWith { attendance[it] ?: false }
+    var newWorkerName by remember { mutableStateOf("") }
+    
+    if (hasError) {
+        ErrorScreen()
+        return
     }
 
     Scaffold(
         topBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = SurfaceSecondary,
-                shadowElevation = 4.dp
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            TopAppBar(
+                title = {
                     Text(
                         text = "Personal",
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            fontWeight = FontWeight.Bold
                         )
                     )
-                    IconButton(
-                        onClick = { showAddDialog = true },
-                        modifier = Modifier
-                            .size(44.dp)
-                            .background(
-                                DeepSkyBlue.copy(alpha = 0.1f),
-                                CircleShape
-                            )
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Agregar trabajador", tint = DeepSkyBlue)
+                },
+                actions = {
+                    IconButton(onClick = { showAddDialog = true }) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = "Agregar trabajador",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
-                }
-            }
-        },
-        floatingActionButton = {
-            if (hasChanges) {
-                FloatingActionButton(
-                    onClick = { showSaveConfirmation = true },
-                    containerColor = DeepSkyBlue,
-                    contentColor = PureWhite,
-                    modifier = Modifier.shadow(8.dp, RoundedCornerShape(16.dp))
-                ) {
-                    Icon(Icons.Default.Check, contentDescription = "Guardar cambios")
-                }
-            }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(BackgroundPrimary)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-            // Administradora
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Card de administradora
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Icon(Icons.Outlined.Person, contentDescription = null, tint = DeepSkyBlue, modifier = Modifier.size(32.dp))
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = "Maria Flores",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                        )
-                        Text(
-                            text = "Administradora",
-                            style = MaterialTheme.typography.bodySmall.copy(color = TextSecondary)
-                        )
-                    }
-                }
-            }
-            // Lista de trabajadores
-            Text(
-                text = "Trabajadores",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
-                ),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f, fill = false)
-            ) {
-                items(workers) { worker ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = PureWhite),
-                        shape = RoundedCornerShape(12.dp)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .size(48.dp)
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Checkbox(
-                                checked = attendance[worker] == true,
-                                onCheckedChange = {
-                                    attendance = attendance.toMutableMap().apply { put(worker, it) }
-                                    hasChanges = true
-                                },
-                                colors = CheckboxDefaults.colors(
-                                    checkedColor = DeepSkyBlue,
-                                    uncheckedColor = MediumGray
+                            Icon(
+                                Icons.Outlined.Person,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column {
+                            Text(
+                                text = "Maria Flores",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold
                                 )
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = worker,
-                                style = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary)
+                                text = "Administradora",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
                             )
-                            Spacer(modifier = Modifier.weight(1f))
-                            IconButton(
-                                onClick = { showDeleteDialog = worker to true },
-                                modifier = Modifier.size(32.dp)
-                            ) {
-                                Icon(Icons.Default.Delete, contentDescription = "Eliminar trabajador", tint = StatusPending)
-                            }
                         }
                     }
                 }
             }
+            
+            item {
+                Text(
+                    text = "Trabajadores (${workers.size})",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            
+            items(workers) { worker ->
+                WorkerCard(
+                    workerName = worker,
+                    isPresent = attendance[worker] ?: false,
+                    onAttendanceChange = { isPresent ->
+                        attendance = attendance.toMutableMap().apply { 
+                            put(worker, isPresent) 
+                        }
+                    }
+                )
+            }
+            
+            item {
+                Spacer(modifier = Modifier.height(100.dp))
+            }
         }
     }
-
+    
     // Diálogo para agregar trabajador
     if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("Agregar trabajador") },
+            title = {
+                Text(
+                    "Agregar trabajador",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.SemiBold
+                    )
+                )
+            },
             text = {
                 OutlinedTextField(
                     value = newWorkerName,
                     onValueChange = { newWorkerName = it },
                     label = { Text("Nombre completo") },
-                    singleLine = true
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
                 )
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val name = newWorkerName.text.trim()
+                        val name = newWorkerName.trim()
                         if (name.isNotEmpty() && !workers.contains(name)) {
                             workers = workers + name
                             attendance = attendance + (name to false)
-                            hasChanges = true
                         }
-                        newWorkerName = TextFieldValue("")
+                        newWorkerName = ""
                         showAddDialog = false
                     }
-                ) { Text("Agregar") }
+                ) {
+                    Text("Agregar")
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showAddDialog = false }) { Text("Cancelar") }
+                TextButton(onClick = { showAddDialog = false }) {
+                    Text("Cancelar")
+                }
             }
         )
     }
+}
 
-    // Diálogo para eliminar trabajador
-    showDeleteDialog?.let { (worker, show) ->
-        if (show) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = null },
-                title = { Text("Eliminar trabajador") },
-                text = { Text("¿Estás seguro de que deseas eliminar a $worker?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            workers = workers - worker
-                            attendance = attendance - worker
-                            hasChanges = true
-                            showDeleteDialog = null
-                        }
-                    ) { Text("Eliminar") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = null }) { Text("Cancelar") }
-                }
+@Composable
+fun ErrorScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Icon(
+                Icons.Default.Error,
+                contentDescription = "Error",
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(48.dp)
+            )
+            Text(
+                text = "Error al cargar la pantalla",
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "Por favor, intenta de nuevo",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
             )
         }
     }
+}
 
-    // Diálogo de confirmación de guardado
-    if (showSaveConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showSaveConfirmation = false },
-            title = { Text("Cambios guardados") },
-            text = { Text("La asistencia y la lista de trabajadores han sido actualizadas.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showSaveConfirmation = false
-                    hasChanges = false
-                }) { Text("OK") }
+@Composable
+fun WorkerCard(
+    workerName: String,
+    isPresent: Boolean,
+    onAttendanceChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = isPresent,
+                onCheckedChange = onAttendanceChange,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(
+                text = workerName,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Medium
+                ),
+                modifier = Modifier.weight(1f)
+            )
+            if (isPresent) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = "Presente",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
-        )
+        }
     }
 }

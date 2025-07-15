@@ -2,6 +2,11 @@ package com.isra2.desasolve2.ui.screens.schedule
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -113,18 +118,19 @@ fun ScheduleScreen(navController: NavController) {
                     selectedDate = selectedDate,
                     onDateSelected = { 
                         selectedDate = it
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                     },
                     onMonthChanged = { 
                         currentMonth = it
-                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                     }
                 )
             }
             
             item {
                 // Información del día seleccionado
-                SelectedDateInfo(selectedDate = selectedDate)
+                SelectedDateInfo(
+                    selectedDate = selectedDate,
+                    onDateSelected = { selectedDate = it }
+                )
             }
             
             // Lista de servicios del día con filtros aplicados
@@ -171,8 +177,6 @@ data class FilterState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModernHeader(onFilterApplied: (ServiceType?, Boolean, Boolean, Boolean, Boolean) -> Unit, currentFilters: FilterState) {
-    var showFilterDialog by remember { mutableStateOf(false) }
-    
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = SurfaceSecondary,
@@ -202,32 +206,17 @@ fun ModernHeader(onFilterApplied: (ServiceType?, Boolean, Boolean, Boolean, Bool
                 )
             }
             
-            // Botón de filtros avanzados
+            // Botón de filtro simplificado
             IconButton(
-                onClick = { showFilterDialog = true },
-                modifier = Modifier
-                    .size(44.dp)
-                    .background(
-                        DeepSkyBlue.copy(alpha = 0.1f),
-                        CircleShape
-                    )
+                onClick = { /* Filtros en desarrollo */ }
             ) {
                 Icon(
                     Icons.Outlined.FilterList,
-                    contentDescription = "Filtros avanzados",
-                    tint = DeepSkyBlue
+                    contentDescription = "Filtros",
+                    tint = InteractivePrimary
                 )
             }
         }
-    }
-    
-    // Diálogo de filtros avanzados
-    if (showFilterDialog) {
-        AdvancedFiltersDialog(
-            onDismiss = { showFilterDialog = false },
-            onFilterApplied = onFilterApplied,
-            currentFilters = currentFilters
-        )
     }
 }
 
@@ -496,162 +485,178 @@ fun InfiniteCalendar(
     onDateSelected: (LocalDate) -> Unit,
     onMonthChanged: (LocalDate) -> Unit
 ) {
-    val listState = rememberLazyListState()
     val services = remember { getDummyServices() }
     val servicesByDate = remember(services) {
         services.groupBy { it.date }
     }
-    var shouldScrollToSelected by remember { mutableStateOf(false) }
+    
+    // Simplificar las fechas para evitar problemas de memoria
     val allDates = remember {
         val today = LocalDate.now()
-        val startDate = today.minusDays(365)
-        val endDate = today.plusDays(365)
+        val startDate = today.minusDays(30) // Reducir de 365 a 30 días
+        val endDate = today.plusDays(30)    // Reducir de 365 a 30 días
         (0..(endDate.toEpochDay() - startDate.toEpochDay()).toInt()).map { 
             startDate.plusDays(it.toLong()) 
         }
     }
-    val itemWidth = 64.dp
-    val itemSpacing = 8.dp
-    val visibleItems = 5 // Siempre 5 días
-    val horizontalPadding = 32.dp
-
-    // Centrar el seleccionado
-    LaunchedEffect(selectedDate, shouldScrollToSelected) {
-        if (shouldScrollToSelected) {
-            val selectedIndex = allDates.indexOf(selectedDate)
-            if (selectedIndex != -1) {
-                val centerIndex = 2 // Siempre el 3° de 5
-                val targetIndex = (selectedIndex - centerIndex).coerceAtLeast(0)
-                listState.animateScrollToItem(targetIndex)
-            }
-            shouldScrollToSelected = false
-        }
-    }
-
-    val currentMonth = remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val visibleItemsInfo = layoutInfo.visibleItemsInfo
-            if (visibleItemsInfo.isNotEmpty()) {
-                val centerIndex = visibleItemsInfo[visibleItemsInfo.size / 2].index
-                if (centerIndex < allDates.size) {
-                    allDates[centerIndex]
-                } else {
-                    LocalDate.now()
-                }
-            } else {
-                LocalDate.now()
-            }
-        }
-    }
-    LaunchedEffect(currentMonth.value) {
-        onMonthChanged(currentMonth.value)
-    }
     
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(SurfaceSecondary, RoundedCornerShape(16.dp))
-            .padding(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-        Text(
-            text = currentMonth.value.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es")))
-                .replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.headlineSmall.copy(
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            ),
-                modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
-        )
-            TodayButton(
-                onClick = {
-                    val today = LocalDate.now()
-                    onDateSelected(today)
-                    shouldScrollToSelected = true
-                }
+    val itemSpacing = 12.dp
+    val horizontalPadding = 24.dp
+    
+    // Estado para controlar el scroll del LazyRow
+    val listState = rememberLazyListState()
+    
+    // Hacer scroll automático cuando se selecciona una fecha
+    LaunchedEffect(selectedDate) {
+        val targetIndex = allDates.indexOf(selectedDate)
+        if (targetIndex != -1) {
+            listState.animateScrollToItem(
+                index = targetIndex,
+                scrollOffset = 0
             )
         }
-        Spacer(modifier = Modifier.height(20.dp))
-        Box(modifier = Modifier.fillMaxWidth()) {
-        LazyRow(
-            state = listState,
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(12.dp, RoundedCornerShape(20.dp)),
+        colors = CardDefaults.cardColors(
+            containerColor = SurfacePrimary
+        ),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            // Header del calendario mejorado
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = selectedDate.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es")))
+                            .replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    )
+                    Text(
+                        text = "Selecciona una fecha",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = TextSecondary
+                        )
+                    )
+                }
+                
+                TodayButton(
+                    onClick = {
+                        val today = LocalDate.now()
+                        onDateSelected(today)
+                        // El scroll automático se activará por el LaunchedEffect
+                    }
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Calendario con mejor espaciado y scroll controlado
+            LazyRow(
+                state = listState,
                 horizontalArrangement = Arrangement.spacedBy(itemSpacing),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = horizontalPadding),
-                contentPadding = PaddingValues(0.dp)
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
-                itemsIndexed(allDates) { index: Int, date: LocalDate ->
-                    // Calcular la posición relativa al centro
-                    val selectedIndex = allDates.indexOf(selectedDate)
-                    val centerIndex = 2 // Siempre el 3° de 5
-                    val distanceFromCenter = kotlin.math.abs(index - (selectedIndex - centerIndex + centerIndex))
-                    val scale = when (distanceFromCenter) {
-                        0 -> 1.15f // centro
-                        1 -> 1.0f
-                        2 -> 0.92f
-                        else -> 0.85f
-                    }
-                    val alpha = 1f // Siempre claro
+                items(allDates) { date ->
                     CalendarDay3D(
-                    date = date,
-                    isSelected = date == selectedDate,
-                    isToday = date == LocalDate.now(),
-                    hasServices = servicesByDate[date]?.isNotEmpty() == true,
-                        scale = scale,
-                        alpha = alpha,
+                        date = date,
+                        isSelected = date == selectedDate,
+                        isToday = date == LocalDate.now(),
+                        hasServices = servicesByDate[date]?.isNotEmpty() == true,
+                        scale = if (date == selectedDate) 1.1f else 1.0f,
+                        alpha = 1f,
                         onClick = {
                             onDateSelected(date)
-                            shouldScrollToSelected = true
                         },
                         selectionColor = DeepSkyBlue
                     )
                 }
             }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Indicador de servicios
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(CalendarHasService, CircleShape)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Días con servicios programados",
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                )
+            }
         }
+    }
+    
+    // Notificar cambio de mes
+    LaunchedEffect(selectedDate) {
+        onMonthChanged(selectedDate)
     }
 }
 
 @Composable
 fun TodayButton(onClick: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
-    
-    Surface(
+    Card(
         onClick = {
-            haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
             onClick()
         },
         modifier = Modifier
             .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(20.dp)
+                elevation = 8.dp,
+                shape = RoundedCornerShape(24.dp)
             ),
-        color = DeepSkyBlue,
-        shape = RoundedCornerShape(20.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = DeepSkyBlue
+        ),
+        shape = RoundedCornerShape(24.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Filled.Today,
                 contentDescription = "Hoy",
                 tint = PureWhite,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(18.dp)
             )
             
             Text(
                 text = "Hoy",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = PureWhite
+                style = MaterialTheme.typography.labelLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = PureWhite,
+                    fontSize = 14.sp
                 )
             )
         }
@@ -671,22 +676,43 @@ fun CalendarDay3D(
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val animatedScale by animateFloatAsState(
-        targetValue = if (isPressed) scale * 1.25f else scale,
+        targetValue = if (isPressed) scale * 1.1f else scale,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow
         ), label = "scale"
     )
+    
+    val animatedElevation by animateDpAsState(
+        targetValue = if (isSelected) 12.dp else if (isToday) 8.dp else 4.dp,
+        animationSpec = tween(durationMillis = 200),
+        label = "elevation"
+    )
+    
     val borderColor = when {
         isSelected -> selectionColor
         isToday -> CalendarSelected
         else -> Color.Transparent
     }
+    
     val backgroundColor = when {
-        isSelected -> selectionColor.copy(alpha = 0.18f)
-        isToday -> CalendarSelected.copy(alpha = 0.10f)
-        else -> Color.Transparent
+        isSelected -> selectionColor
+        isToday -> CalendarSelected.copy(alpha = 0.15f)
+        else -> SurfaceSecondary
     }
+    
+    val textColor = when {
+        isSelected -> PureWhite
+        isToday -> CalendarSelected
+        else -> TextPrimary
+    }
+    
+    val secondaryTextColor = when {
+        isSelected -> PureWhite.copy(alpha = 0.8f)
+        isToday -> CalendarSelected.copy(alpha = 0.7f)
+        else -> TextSecondary
+    }
+    
     Box(
         modifier = Modifier
             .graphicsLayer {
@@ -694,7 +720,7 @@ fun CalendarDay3D(
                 scaleY = animatedScale
                 this.alpha = alpha
             }
-            .size(64.dp, 80.dp)
+            .size(72.dp, 88.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
@@ -710,154 +736,260 @@ fun CalendarDay3D(
             },
         contentAlignment = Alignment.Center
     ) {
-        Surface(
-            shape = RoundedCornerShape(18.dp),
-            color = backgroundColor,
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = backgroundColor
+            ),
             border = if (isSelected || isToday) BorderStroke(2.dp, borderColor) else null,
-            shadowElevation = if (isSelected || isToday) 8.dp else 2.dp,
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = animatedElevation
+            ),
             modifier = Modifier.fillMaxSize()
         ) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Día de la semana (arriba)
-            Text(
-                text = getWeekdayShort(date),
-                style = MaterialTheme.typography.labelSmall.copy(
+                // Día de la semana con mejor tipografía
+                Text(
+                    text = getWeekdayShort(date),
+                    style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) PureWhite else TextSecondary,
-                        fontSize = 13.sp
+                        color = secondaryTextColor,
+                        fontSize = 12.sp
                     ),
-                    modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
-                // Día numérico (abajo)
-            Text(
-                text = date.dayOfMonth.toString(),
-                    style = MaterialTheme.typography.titleLarge.copy(
+                
+                // Día numérico con mejor jerarquía
+                Text(
+                    text = date.dayOfMonth.toString(),
+                    style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.Bold,
-                        color = if (isSelected) PureWhite else TextPrimary,
-                        fontSize = 22.sp
+                        color = textColor,
+                        fontSize = 24.sp
                     ),
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-            // Indicador de servicios
-            if (hasServices) {
-                Box(
-                    modifier = Modifier
-                            .size(6.dp)
-                            .background(CalendarHasService, CircleShape)
-                    )
+                
+                // Indicador de servicios mejorado
+                if (hasServices) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier.padding(top = 2.dp)
+                    ) {
+                        repeat(3) { index ->
+                            Box(
+                                modifier = Modifier
+                                    .size(4.dp)
+                                    .background(
+                                        if (isSelected) PureWhite.copy(alpha = 0.8f) else CalendarHasService,
+                                        CircleShape
+                                    )
+                            )
+                        }
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
     }
 }
 
-// Función auxiliar para obtener el día de la semana abreviado
+// Función auxiliar para obtener el día de la semana abreviado mejorado
 private fun getWeekdayShort(date: LocalDate): String {
     return when (date.dayOfWeek.value) {
-        1 -> "L"
-        2 -> "M"
-        3 -> "M"
-        4 -> "J"
-        5 -> "V"
-        6 -> "S"
-        7 -> "D"
+        1 -> "LUN"
+        2 -> "MAR"
+        3 -> "MIÉ"
+        4 -> "JUE"
+        5 -> "VIE"
+        6 -> "SÁB"
+        7 -> "DOM"
         else -> ""
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelectedDateInfo(selectedDate: LocalDate) {
+fun SelectedDateInfo(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
     var showDatePicker by remember { mutableStateOf(false) }
     
+    // Mover el estado del DatePicker fuera del bloque if para que esté en el contexto composable
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
+    )
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(8.dp, RoundedCornerShape(16.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = SurfaceSecondary
+            containerColor = SurfacePrimary
         ),
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                // Día de la semana
                 Text(
-                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, d 'de' MMMM", Locale("es")))
+                    text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE", Locale("es")))
                         .replaceFirstChar { it.uppercase() },
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        fontWeight = FontWeight.Medium,
+                        color = TextSecondary,
+                        fontSize = 14.sp
                     )
                 )
                 
-            // Solo botón de calendario
-            IconButton(
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // Fecha completa con mejor formato
+                Text(
+                    text = selectedDate.format(DateTimeFormatter.ofPattern("d 'de' MMMM, yyyy", Locale("es")))
+                        .replaceFirstChar { it.uppercase() },
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        fontSize = 20.sp
+                    )
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // Indicador de día especial
+                if (selectedDate == LocalDate.now()) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(DeepSkyBlue, CircleShape)
+                        )
+                        Text(
+                            text = "Hoy",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                color = DeepSkyBlue,
+                                fontSize = 12.sp
+                            )
+                        )
+                    }
+                }
+            }
+            
+            // Botón de calendario mejorado
+            Card(
                 onClick = { showDatePicker = true },
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        DeepSkyBlue,
-                        CircleShape
-                    )
+                    .size(56.dp)
+                    .shadow(4.dp, RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(
+                    containerColor = DeepSkyBlue
+                ),
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(
-                    Icons.Outlined.CalendarToday,
-                    contentDescription = "Seleccionar fecha",
-                    tint = PureWhite
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Outlined.CalendarToday,
+                        contentDescription = "Seleccionar fecha",
+                        tint = PureWhite,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }
     
-    // DatePicker
+    // DatePicker real
     if (showDatePicker) {
-        DatePickerDialog(
+        AlertDialog(
             onDismissRequest = { showDatePicker = false },
+            title = {
+                Text(
+                    text = "Seleccionar Fecha",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                )
+            },
+            text = {
+                DatePicker(
+                    state = datePickerState,
+                    colors = DatePickerDefaults.colors(
+                        containerColor = SurfacePrimary,
+                        titleContentColor = TextPrimary,
+                        headlineContentColor = TextPrimary,
+                        weekdayContentColor = TextSecondary,
+                        subheadContentColor = TextSecondary,
+                        yearContentColor = TextSecondary,
+                        currentYearContentColor = DeepSkyBlue,
+                        selectedYearContentColor = PureWhite,
+                        selectedYearContainerColor = DeepSkyBlue,
+                        dayContentColor = TextPrimary,
+                        selectedDayContentColor = PureWhite,
+                        selectedDayContainerColor = DeepSkyBlue,
+                        todayContentColor = DeepSkyBlue,
+                        todayDateBorderColor = DeepSkyBlue
+                    )
+                )
+            },
             confirmButton = {
                 TextButton(
-                    onClick = { showDatePicker = false }
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selectedLocalDate = java.time.Instant.ofEpochMilli(millis)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                            onDateSelected(selectedLocalDate)
+                        }
+                        showDatePicker = false
+                    },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = DeepSkyBlue
+                    )
                 ) {
-                    Text("OK", color = DeepSkyBlue)
+                    Text(
+                        text = "Aceptar",
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showDatePicker = false }
+                    onClick = { showDatePicker = false },
+                    colors = ButtonDefaults.textButtonColors(
+                        contentColor = TextSecondary
+                    )
                 ) {
-                    Text("Cancelar", color = TextSecondary)
+                    Text("Cancelar")
                 }
-            }
-        ) {
-            DatePicker(
-                state = rememberDatePickerState(
-                    initialSelectedDateMillis = selectedDate.atStartOfDay(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli()
-                ),
-                colors = DatePickerDefaults.colors(
-                    containerColor = PureWhite,
-                    titleContentColor = TextPrimary,
-                    headlineContentColor = TextPrimary,
-                    weekdayContentColor = TextSecondary,
-                    subheadContentColor = TextSecondary,
-                    yearContentColor = TextSecondary,
-                    currentYearContentColor = DeepSkyBlue,
-                    selectedYearContentColor = PureWhite,
-                    selectedYearContainerColor = DeepSkyBlue,
-                    dayContentColor = TextPrimary,
-                    selectedDayContentColor = PureWhite,
-                    selectedDayContainerColor = DeepSkyBlue,
-                    todayContentColor = DeepSkyBlue,
-                    todayDateBorderColor = DeepSkyBlue
-                ),
-                showModeToggle = false
-            )
-        }
+            },
+            containerColor = SurfacePrimary,
+            shape = RoundedCornerShape(20.dp)
+        )
     }
 }
 

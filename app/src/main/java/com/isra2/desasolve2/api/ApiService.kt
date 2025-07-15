@@ -12,6 +12,9 @@ interface ApiService {
     @GET("quotes/{id}/")
     suspend fun getQuote(@Path("id") id: String): Response<Quote>
     
+    @POST("quotes/")
+    suspend fun createQuote(@Body quote: Quote): Response<Quote>
+    
     @POST("quotes/{id}/accept/")
     suspend fun acceptQuote(@Path("id") id: String): Response<Quote>
     
