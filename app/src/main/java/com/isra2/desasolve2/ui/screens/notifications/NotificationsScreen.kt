@@ -32,7 +32,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun NotificationsScreen(navController: NavController) {
     var selectedFilter by remember { mutableStateOf(NotificationFilter.ALL) }
-    val notifications = remember { getDummyNotifications() }
+    val notifications = remember { listOf<Notification>() } // TODO: Reemplazar por datos reales del ViewModel
     val filteredNotifications = remember(notifications, selectedFilter) {
         when (selectedFilter) {
             NotificationFilter.ALL -> notifications
@@ -496,48 +496,4 @@ data class Notification(
     val timestamp: LocalDateTime,
     val isRead: Boolean = false,
     val isImportant: Boolean = false
-)
-
-fun getDummyNotifications(): List<Notification> {
-    return listOf(
-        Notification(
-            id = "1",
-            title = "Servicio Completado",
-            message = "El servicio de limpieza en Av. Principal 123 ha sido completado exitosamente.",
-            type = NotificationType.SERVICE_COMPLETED,
-            timestamp = LocalDateTime.now().minusMinutes(30),
-            isImportant = true
-        ),
-        Notification(
-            id = "2",
-            title = "Nuevo Servicio Programado",
-            message = "Se ha programado un nuevo servicio para mañana a las 9:00 AM.",
-            type = NotificationType.SERVICE_SCHEDULED,
-            timestamp = LocalDateTime.now().minusHours(2)
-        ),
-        Notification(
-            id = "3",
-            title = "Pago Recibido",
-            message = "Se ha recibido el pago por el servicio #12345. Monto: $150.00",
-            type = NotificationType.PAYMENT_RECEIVED,
-            timestamp = LocalDateTime.now().minusHours(4),
-            isRead = true
-        ),
-        Notification(
-            id = "4",
-            title = "Mensaje Urgente",
-            message = "El cliente ha solicitado cambios en el servicio programado para hoy.",
-            type = NotificationType.URGENT_MESSAGE,
-            timestamp = LocalDateTime.now().minusHours(6),
-            isImportant = true
-        ),
-        Notification(
-            id = "5",
-            title = "Actualización del Sistema",
-            message = "Se han aplicado mejoras en la aplicación. Reinicia para ver los cambios.",
-            type = NotificationType.SYSTEM_UPDATE,
-            timestamp = LocalDateTime.now().minusDays(1),
-            isRead = true
-        )
-    )
-} 
+) 

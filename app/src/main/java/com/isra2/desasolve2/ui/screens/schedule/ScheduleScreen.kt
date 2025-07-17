@@ -57,7 +57,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 fun ScheduleScreen(navController: NavController) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var currentMonth by remember { mutableStateOf(LocalDate.now()) }
-    val services = remember { getDummyServices() }
+    val services = remember { listOf<Service>() } // TODO: Reemplazar por datos reales del ViewModel
     val haptic = LocalHapticFeedback.current
     
     // Estado para filtros - ahora persistente
@@ -384,7 +384,7 @@ fun AdvancedFiltersDialog(onDismiss: () -> Unit, onFilterApplied: (ServiceType?,
                     )
                 )
                 
-                val todayServices = getDummyServices().filter { it.date == LocalDate.now() }
+                val todayServices = listOf<Service>() // TODO: Reemplazar por datos reales del ViewModel
                 val totalServices = todayServices.size
                 val completedServices = todayServices.count { it.status == ServiceStatus.COMPLETED }
                 val pendingServices = todayServices.count { it.status == ServiceStatus.PENDING }
@@ -485,7 +485,7 @@ fun InfiniteCalendar(
     onDateSelected: (LocalDate) -> Unit,
     onMonthChanged: (LocalDate) -> Unit
 ) {
-    val services = remember { getDummyServices() }
+    val services = remember { listOf<Service>() } // TODO: Reemplazar por datos reales del ViewModel
     val servicesByDate = remember(services) {
         services.groupBy { it.date }
     }
@@ -1146,47 +1146,4 @@ fun EmptyDayCard() {
             )
         }
     }
-}
-
-// Funciones auxiliares
-private fun getDummyServices(): List<Service> {
-    val today = LocalDate.now()
-    return listOf(
-        Service(
-            id = "1",
-            clientName = "Restaurante El Buen Sabor",
-            address = "Av. Principal 123, Centro",
-            date = today,
-            time = "09:00",
-            type = ServiceType.KITCHEN,
-            status = ServiceStatus.SCHEDULED
-        ),
-        Service(
-            id = "2",
-            clientName = "Hotel Plaza Mayor",
-            address = "Calle Comercial 456, Zona Hotelera",
-            date = today,
-            time = "14:30",
-            type = ServiceType.DRAINAGE,
-            status = ServiceStatus.PENDING
-        ),
-        Service(
-            id = "3",
-            clientName = "Cafetería Central",
-            address = "Plaza Mayor 789, Centro Histórico",
-            date = today.plusDays(1),
-            time = "10:00",
-            type = ServiceType.CLEANING,
-            status = ServiceStatus.SCHEDULED
-        ),
-        Service(
-            id = "4",
-            clientName = "Restaurante Mariscos",
-            address = "Puerto 321, Zona Portuaria",
-            date = today.plusDays(2),
-            time = "16:00",
-            type = ServiceType.MAINTENANCE,
-            status = ServiceStatus.SCHEDULED
-        )
-    )
 } 
